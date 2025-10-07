@@ -2,11 +2,19 @@ import React, { useState } from 'react';
 import { categories } from '@/data/videos';
 import CategorySection from '@/components/CategorySection';
 import VideoPlayer from '@/components/VideoPlayer';
+import UserProfile from '@/components/UserProfile';
+import ProgressStats from '@/components/ProgressStats';
 import { Video } from '@/data/videos';
 
 const Dashboard = () => {
   const [selectedVideo, setSelectedVideo] = useState<{id: string, title: string} | null>(null);
+  const [showStats, setShowStats] = useState(false);
   const [userProgress, setUserProgress] = useState<Record<string, boolean[]>>(() => {
+    const savedProgress = localStorage.getItem('userProgress');
+    if (savedProgress) {
+      return JSON.parse(savedProgress);
+    }
+    
     const initialProgress: Record<string, boolean[]> = {};
     categories.forEach(category => {
       initialProgress[category.id] = new Array(category.videos.length).fill(false);
@@ -38,6 +46,9 @@ const Dashboard = () => {
           newProgress[categoryId][videoIndex] = true;
         }
       }
+      
+      // Save to localStorage
+      localStorage.setItem('userProgress', JSON.stringify(newProgress));
       return newProgress;
     });
   };
@@ -51,8 +62,24 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-red-600">ARC7HIVE</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setShowStats(true)}
+              className="text-gray-400 hover:text-white transition-colors"
+            >
+              Estatísticas
+            </button>
+            <UserProfile />
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
-      <div className="relative h-96 flex items-center justify-center overflow-hidden">
+      <div className="relative h-80 flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10" />
         <div 
@@ -62,11 +89,11 @@ const Dashboard = () => {
           }}
         />
         <div className="relative z-20 text-center px-4">
-          <h1 className="text-5xl md:text-7xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-400">
-            ARC7HIVE
-          </h1>
+          <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">
+            Bem-vindo ao ARC7HIVE
+          </h2>
           <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
-            Plataforma de aprendizado em IA, Marketing Digital e Mercado Financeiro
+            Sua jornada de aprendizado em IA, Marketing Digital e Mercado Financeiro
           </p>
         </div>
       </div>
@@ -94,7 +121,6 @@ const Dashboard = () => {
           title={selectedVideo.title}
           onClose={handleClosePlayer}
           onNextVideo={() => {
-            // Mark current video as completed
             const category = categories.find(cat => 
               cat.videos.some(v => v.id === selectedVideo.id)
             );
@@ -108,6 +134,12 @@ const Dashboard = () => {
           }}
         />
       )}
+
+      {/* Progress Stats Modal */}
+      <ProgressStats 
+        isOpen={showStats}
+        onClose={() => setShowStats(false)}
+      />
     </div>
   );
 };
