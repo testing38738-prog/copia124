@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Login = () => {
   const [password, setPassword] = useState('');
@@ -39,13 +40,28 @@ const Login = () => {
               WebkitTextFillColor: 'transparent',
               textShadow: '0 0 20px rgba(255, 107, 107, 0.5)'
             }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
           >
             ARC7HIVE
           </motion.h1>
-          <p className="text-gray-400 text-lg">Plataforma de aprendizado exclusiva</p>
+          <motion.p 
+            className="text-gray-400 text-lg"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            Plataforma de aprendizado exclusiva
+          </motion.p>
         </div>
         
-        <div className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-700/50">
+        <motion.div 
+          className="bg-gray-900/80 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-gray-700/50"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
           <div className="text-center mb-6">
             <div className="mx-auto bg-gradient-to-br from-red-600 to-orange-500 rounded-full p-4 w-20 h-20 flex items-center justify-center mb-4">
               <Lock className="text-white" size={32} />
@@ -70,17 +86,24 @@ const Login = () => {
             </div>
             
             {error && (
-              <div className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm">
+              <motion.div 
+                className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
                 {error}
-              </div>
+              </motion.div>
             )}
             
-            <button
+            <motion.button
               type="submit"
               className="w-full bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-500/25"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Acessar Plataforma
-            </button>
+            </motion.button>
           </form>
           
           <div className="mt-6 text-center text-sm text-gray-500">
@@ -94,7 +117,7 @@ const Login = () => {
               <span className="bg-gray-800/50 rounded px-2 py-1">Gustavo: 9921</span>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

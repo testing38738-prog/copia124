@@ -4,7 +4,7 @@ import CategorySection from '@/components/CategorySection';
 import VideoPlayer from '@/components/VideoPlayer';
 import UserProfile from '@/components/UserProfile';
 import ProgressStats from '@/components/ProgressStats';
-import { Video } from '@/data/videos';
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const [selectedVideo, setSelectedVideo] = useState<{id: string, title: string} | null>(null);
@@ -47,7 +47,6 @@ const Dashboard = () => {
         }
       }
       
-      // Save to localStorage
       localStorage.setItem('userProgress', JSON.stringify(newProgress));
       return newProgress;
     });
@@ -61,18 +60,27 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 px-6 py-4">
+      <div className="bg-gray-900/80 backdrop-blur-md border-b border-gray-700/50 px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-red-600">ARC7HIVE</h1>
+          <motion.h1 
+            className="text-2xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            ARC7HIVE
+          </motion.h1>
           <div className="flex items-center gap-4">
-            <button
+            <motion.button
               onClick={() => setShowStats(true)}
               className="text-gray-400 hover:text-white transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               Estatísticas
-            </button>
+            </motion.button>
             <UserProfile />
           </div>
         </div>
@@ -88,29 +96,40 @@ const Dashboard = () => {
             backgroundImage: "url('https://images.unsplash.com/photo-1677442135722-5f11e06a4e6d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80')" 
           }}
         />
-        <div className="relative z-20 text-center px-4">
+        <motion.div 
+          className="relative z-20 text-center px-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
           <h2 className="text-4xl md:text-6xl font-bold mb-4 text-white">
             Bem-vindo ao ARC7HIVE
           </h2>
           <p className="text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
             Sua jornada de aprendizado em IA, Marketing Digital e Mercado Financeiro
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* Content */}
       <div className="container mx-auto px-4 py-12">
-        {categories.map((category) => (
-          <CategorySection
+        {categories.map((category, index) => (
+          <motion.div
             key={category.id}
-            title={category.title}
-            videos={category.videos.map((video, index) => ({
-              ...video,
-              completed: userProgress[category.id]?.[index] || false
-            }))}
-            onVideoSelect={(videoId) => handleVideoSelect(videoId, category.title)}
-            progress={calculateCategoryProgress(category.id)}
-          />
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 * index, duration: 0.5 }}
+          >
+            <CategorySection
+              title={category.title}
+              videos={category.videos.map((video, idx) => ({
+                ...video,
+                completed: userProgress[category.id]?.[idx] || false
+              }))}
+              onVideoSelect={(videoId) => handleVideoSelect(videoId, category.title)}
+              progress={calculateCategoryProgress(category.id)}
+            />
+          </motion.div>
         ))}
       </div>
 

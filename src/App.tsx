@@ -17,7 +17,6 @@ const App = () => {
   const [splashCompleted, setSplashCompleted] = useState(false);
 
   useEffect(() => {
-    // Verificar se o splash já foi mostrado nesta sessão
     const hasShownSplash = sessionStorage.getItem('splashShown');
     if (hasShownSplash) {
       setShowSplash(false);
@@ -31,7 +30,6 @@ const App = () => {
     setShowSplash(false);
   };
 
-  // Verificar se usuário está logado
   const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
 
   return (
@@ -41,13 +39,14 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Login />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          {splashCompleted && (
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Login />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          )}
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
