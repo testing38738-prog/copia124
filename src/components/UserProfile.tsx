@@ -1,16 +1,19 @@
 import React from 'react';
 import { User, LogOut, BarChart3 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UserProfile: React.FC = () => {
   const navigate = useNavigate();
-  const userName = localStorage.getItem('user') || 'Usuário';
-  const userInitial = userName.charAt(0).toUpperCase();
+  const { user, signOut } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('user');
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
   };
 
   const getOverallProgress = () => {
@@ -28,6 +31,9 @@ const UserProfile: React.FC = () => {
     
     return totalVideos > 0 ? Math.round((completedVideos / totalVideos) * 100) : 0;
   };
+
+  const userEmail = user?.email || 'usuário@arc7hive.com';
+  const userInitial = userEmail.charAt(0).toUpperCase();
 
   return (
     <div className="flex items-center gap-4">
@@ -59,11 +65,11 @@ const UserProfile: React.FC = () => {
 
       {/* User Info */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-orange-500 rounded-full flex items-center justify-center">
           <span className="text-white font-bold">{userInitial}</span>
         </div>
         <div className="hidden md:block">
-          <p className="text-white font-medium">{userName}</p>
+          <p className="text-white font-medium truncate max-w-[120px]">{userEmail.split('@')[0]}</p>
           <p className="text-gray-400 text-sm">{getOverallProgress()}% concluído</p>
         </div>
       </div>

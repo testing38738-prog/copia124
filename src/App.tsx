@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import SplashScreen from "./components/SplashScreen";
 import NotFound from "./pages/NotFound";
+import { AuthProvider } from './contexts/AuthContext';
 
 const queryClient = new QueryClient();
 
@@ -17,7 +18,6 @@ const App = () => {
   const [splashCompleted, setSplashCompleted] = useState(false);
 
   useEffect(() => {
-    // Verificar se o splash já foi mostrado nesta sessão
     const hasShownSplash = sessionStorage.getItem('splashShown');
     if (hasShownSplash) {
       setShowSplash(false);
@@ -31,25 +31,26 @@ const App = () => {
     setShowSplash(false);
   };
 
-  // Verificar se usuário está logado
-  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard" element={isLoggedIn ? <Dashboard /> : <Login />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+            {splashCompleted && (
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/category/:categoryId" element={<CategoryDetail />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            )}
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
