@@ -9,7 +9,8 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import SplashScreen from "./components/SplashScreen";
 import NotFound from "./pages/NotFound";
-import { AuthProvider } from './contexts/AuthContext';
+import Categories from "./pages/Categories";
+import VideoPlayerPage from "./pages/VideoPlayerPage";
 
 const queryClient = new QueryClient();
 
@@ -33,24 +34,23 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
-            {splashCompleted && (
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/category/:categoryId" element={<CategoryDetail />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            )}
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
+          {splashCompleted && (
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/categories/:categoryId" element={<Categories />} />
+              <Route path="/video/:videoId" element={<VideoPlayerPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          )}
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };

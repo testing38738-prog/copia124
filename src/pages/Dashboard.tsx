@@ -1,15 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { categories } from '@/data/videos';
-import CategorySection from '@/components/CategorySection';
-import VideoPlayer from '@/components/VideoPlayer';
 import UserProfile from '@/components/UserProfile';
 import ProgressStats from '@/components/ProgressStats';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Play, Users, TrendingUp, DollarSign } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [selectedVideo, setSelectedVideo] = useState<{id: string, title: string} | null>(null);
   const [showStats, setShowStats] = useState(false);
   const [userProgress, setUserProgress] = useState<Record<string, boolean[]>>(() => {
     const savedProgress = localStorage.getItem('userProgress');
@@ -24,41 +22,29 @@ const Dashboard = () => {
     return initialProgress;
   });
 
-  const handleVideoSelect = (videoId: string, categoryTitle: string) => {
-    const category = categories.find(cat => cat.title === categoryTitle);
-    if (category) {
-      const video = category.videos.find(v => v.id === videoId);
-      if (video) {
-        setSelectedVideo({ id: videoId, title: video.title });
-      }
-    }
-  };
-
-  const handleClosePlayer = () => {
-    setSelectedVideo(null);
-  };
-
-  const handleVideoComplete = (videoId: string, categoryId: string) => {
-    setUserProgress(prev => {
-      const newProgress = { ...prev };
-      const categoryIndex = categories.findIndex(cat => cat.id === categoryId);
-      if (categoryIndex !== -1) {
-        const videoIndex = categories[categoryIndex].videos.findIndex(v => v.id === videoId);
-        if (videoIndex !== -1) {
-          newProgress[categoryId][videoIndex] = true;
-        }
-      }
-      
-      localStorage.setItem('userProgress', JSON.stringify(newProgress));
-      return newProgress;
-    });
-  };
-
   const calculateCategoryProgress = (categoryId: string) => {
     const progressArray = userProgress[categoryId] || [];
     if (progressArray.length === 0) return 0;
     const completed = progressArray.filter(Boolean).length;
     return Math.round((completed / progressArray.length) * 100);
+  };
+
+  const getCategoryIcon = (categoryId: string) => {
+    switch (categoryId) {
+      case 'ia': return <Play className="text-blue-400" size={24} />;
+      case 'marketing': return <TrendingUp className="text-green-400" size={24} />;
+      case 'financas': return <DollarSign className="text-yellow-400" size={24} />;
+      default: return <Play className="text-purple-400" size={24} />;
+    }
+  };
+
+  const getCategoryColor = (categoryId: string) => {
+    switch (categoryId) {
+      case 'ia': return 'from-blue-600 to-blue-800';
+      case 'marketing': return 'from-green-600 to-green-800';
+      case 'financas': return 'from-yellow-600 to-yellow-800';
+      default: return 'from-purple-600 to-purple-800';
+    }
   };
 
   return (
@@ -113,108 +99,72 @@ const Dashboard = () => {
         </motion.div>
       </div>
 
-      {/* Content */}
+      {/* Categories Section */}
       <div className="container mx-auto px-4 py-12">
-        <div className="mb-12">
-          <h2 className="text-3xl font-bold mb-8 text-center">Categorias de Aprendizado</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {categories.map((category, index) => (
+        <motion.h2 
+          className="text-3xl font-bold mb-8 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Categorias de Aprendizado
+        </motion.h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {categories.map((category, index) => {
+            const progress = calculateCategoryProgress(category.id);
+            
+            return (
               <motion.div
                 key={category.id}
-                className="bg-gray-900/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700/50 cursor-pointer hover:border-red-500/50 transition-all duration-300"
+                className="bg-gray-900/50 backdrop-blur-sm rounded-2xl overflow-hidden border border-gray-700/50 shadow-xl cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * index, duration: 0.5 }}
-                whileHover={{ y: -5, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.5)' }}
+                whileHover={{ y: -5 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => navigate(`/category/${category.id}`)}
+                onClick={() => navigate(`/categories/${category.id}`)}
               >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">{category.title}</h3>
-                  <div className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    {category.videos.length} vídeos
+                <div className={`bg-gradient-to-r ${getCategoryColor(category.id)} p-6`}>
+                  <div className="flex items-center justify-between">
+                    <div className="bg-black/20 p-3 rounded-full">
+                      {getCategoryIcon(category.id)}
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">{progress}%</div>
+                      <div className="text-sm opacity-80">Concluído</div>
+                    </div>
                   </div>
+                  <h3 className="text-2xl font-bold mt-4">{category.title}</h3>
+                  <p className="mt-2 opacity-90">
+                    {category.videos.length} vídeos disponíveis
+                  </p>
                 </div>
                 
-                <p className="text-gray-400 mb-4">
-                  {category.title === 'Inteligência Artificial' && 'Aprenda os fundamentos e aplicações da IA'}
-                  {category.title === 'Marketing Digital' && 'Estratégias modernas para marketing online'}
-                  {category.title === 'Mercado Financeiro' && 'Conceitos essenciais para investimentos'}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-orange-500 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-white font-bold">
-                        {category.title.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-white font-medium">Progresso</div>
-                      <div className="text-gray-400 text-sm">
-                        {calculateCategoryProgress(category.id)}% completo
-                      </div>
-                    </div>
+                <div className="p-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Progresso</span>
+                    <span>{progress}%</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <motion.div
+                      className={`h-full bg-gradient-to-r ${getCategoryColor(category.id)} rounded-full`}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ delay: 0.5, duration: 1 }}
+                    />
                   </div>
                   
-                  <div className="text-right">
-                    <div className="text-2xl font-bold text-red-500">
-                      {calculateCategoryProgress(category.id)}%
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-4 w-full h-2 bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-red-600 to-orange-500 rounded-full transition-all duration-500"
-                    style={{ width: `${calculateCategoryProgress(category.id)}%` }}
-                  />
+                  <button className="mt-6 w-full py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors flex items-center justify-center">
+                    <Play size={16} className="mr-2" />
+                    Explorar Categoria
+                  </button>
                 </div>
               </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {categories.map((category, index) => (
-          <motion.div
-            key={category.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 * index, duration: 0.5 }}
-          >
-            <CategorySection
-              title={category.title}
-              videos={category.videos.map((video, idx) => ({
-                ...video,
-                completed: userProgress[category.id]?.[idx] || false
-              }))}
-              onVideoSelect={(videoId) => handleVideoSelect(videoId, category.title)}
-              progress={calculateCategoryProgress(category.id)}
-            />
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Video Player Modal */}
-      {selectedVideo && (
-        <VideoPlayer
-          videoId={selectedVideo.id}
-          title={selectedVideo.title}
-          onClose={handleClosePlayer}
-          onNextVideo={() => {
-            const category = categories.find(cat => 
-              cat.videos.some(v => v.id === selectedVideo.id)
             );
-            if (category) {
-              const videoIndex = category.videos.findIndex(v => v.id === selectedVideo.id);
-              if (videoIndex !== -1) {
-                handleVideoComplete(selectedVideo.id, category.id);
-              }
-            }
-            handleClosePlayer();
-          }}
-        />
-      )}
+          })}
+        </div>
+      </div>
 
       {/* Progress Stats Modal */}
       <ProgressStats 

@@ -1,34 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 import { Lock, User, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { showError, showSuccess } from '@/utils/toast';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+
+  useEffect(() => {
+    // Verificar se usuário já está logado
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate('/dashboard');
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
     try {
-      const { data, error } = await signIn(email, password);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (error) {
-        showError('Credenciais inválidas. Verifique seu e-mail e senha.');
-        return;
+      if (error) throw error;
+      
+      if (data.session) {
+        navigate('/dashboard');
       }
-      
-      showSuccess('Login realizado com sucesso!');
-      navigate('/dashboard');
-    } catch (error) {
-      showError('Ocorreu um erro ao fazer login. Tente novamente.');
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -78,9 +96,9 @@ const Login = () => {
           </div>
           
           <form onSubmit={handleSubmit}>
-            <div className="mb-6">
+            <div className="mb-4">
               <label htmlFor="email" className="block text-gray-300 mb-2">
-                E-mail
+                Email
               </label>
               <input
                 type="email"
@@ -104,33 +122,44 @@ const Login = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent backdrop-blur-sm pr-12"
-                  placeholder="Sua senha"
+                  placeholder="Digite sua senha"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-500 hover:text-white"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-white"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
             </div>
             
+            {error && (
+              <motion.div 
+                className="mb-4 p-3 bg-red-900/50 border border-red-700 rounded-lg text-red-300 text-sm"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                {error}
+              </motion.div>
+            )}
+            
             <motion.button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-              whileHover={{ scale: loading ? 1 : 1.02 }}
-              whileTap={{ scale: loading ? 1 : 0.98 }}
+              className="w-full bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg hover:shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              whileHover={{ scale: !loading ? 1.02 : 1 }}
+              whileTap={{ scale: !loading ? 0.98 : 1 }}
             >
               {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Processando...
-                </>
+                </div>
               ) : (
-                'Acessar Plataforma'
+                "Acessar Plataforma"
               )}
             </motion.button>
           </form>
@@ -138,7 +167,7 @@ const Login = () => {
           <div className="mt-6 text-center text-sm text-gray-500">
             <p className="flex items-center justify-center gap-2">
               <User size={14} />
-              Primeiro acesso? Contate o administrador
+              Acesso restrito a usuários autorizados
             </p>
           </div>
         </motion.div>
